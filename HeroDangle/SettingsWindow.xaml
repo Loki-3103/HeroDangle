@@ -1,0 +1,29 @@
+<Window x:Class="HeroDangle.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="HeroDangle settings"
+        Width="420"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#FFF7F4EE">
+    <StackPanel Margin="20" TextBlock.Foreground="#FF2B2B2B">
+        <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,12" Text="Charm"/>
+        <WrapPanel x:Name="CharmPanel" Margin="0,0,0,16"/>
+        <TextBlock FontSize="18" FontWeight="SemiBold" Margin="0,0,0,8" Text="Hotkey"/>
+        <TextBlock Margin="0,0,0,8" Opacity="0.7" Text="Click the box and press a new shortcut (Ctrl/Alt/Shift + key)."/>
+        <Border x:Name="HotkeyBox"
+                Background="White"
+                BorderBrush="#FFD8D0C4"
+                BorderThickness="1"
+                CornerRadius="6"
+                Padding="12"
+                Focusable="True"
+                PreviewKeyDown="OnHotkeyPreviewKeyDown"
+                MouseDown="OnHotkeyBoxMouseDown">
+            <TextBlock x:Name="HotkeyText" FontSize="16"/>
+        </Border>
+        <TextBlock x:Name="StatusText" Margin="0,8,0,0" Opacity="0.75"/>
+        <Button Content="Done" Margin="0,16,0,0" Width="96" HorizontalAlignment="Right" IsDefault="True" Click="OnDone"/>
+    </StackPanel>
+</Window>
