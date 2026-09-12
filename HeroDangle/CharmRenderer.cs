@@ -131,9 +131,13 @@ public static class CharmRenderer
             Edging = SKFontEdging.SubpixelAntialias,
             Hinting = SKFontHinting.Slight
         };
-        using var paint = new SKPaint { IsAntialias = true };
-        font.MeasureText(emoji, out SKRect bounds, paint);
-        canvas.DrawText(emoji, -bounds.MidX, -bounds.MidY, font, paint);
+        using var paint = new SKPaint
+        {
+            IsAntialias = true,
+            TextAlign = SKTextAlign.Center
+        };
+
+        canvas.DrawText(emoji, 0, r * 0.55f, font, paint);
     }
 
     private static void DrawVectorCharm(SKCanvas canvas, string id, float r, float dpi)

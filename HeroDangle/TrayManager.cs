@@ -72,9 +72,9 @@ public sealed class TrayManager : IDisposable
         _icon = new TaskbarIcon
         {
             ToolTipText = "HeroDangle",
-            IconSource = CreateIcon(),
             ContextMenu = menu
         };
+        _icon.Icon = CreateNativeIcon();
         _icon.TrayMouseDoubleClick += (_, _) => onSettings();
     }
 
@@ -88,8 +88,9 @@ public sealed class TrayManager : IDisposable
         }
     }
 
-    private static ImageSource CreateIcon()
+    private static System.Drawing.Icon CreateNativeIcon()
     {
+        // Render icon pixels with SkiaSharp
         var info = new SKImageInfo(32, 32, SKColorType.Bgra8888, SKAlphaType.Premul);
         using var surface = SKSurface.Create(info);
         SKCanvas canvas = surface.Canvas;
@@ -104,16 +105,12 @@ public sealed class TrayManager : IDisposable
         paint.Color = new SKColor(18, 22, 30);
         canvas.DrawCircle(16, 16, 2.4f, paint);
 
+        // Convert Skia pixels -> System.Drawing.Bitmap -> System.Drawing.Icon
         using SKImage image = surface.Snapshot();
         using SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
         using var stream = new MemoryStream(data.ToArray());
-        var bmp = new BitmapImage();
-        bmp.BeginInit();
-        bmp.CacheOption = BitmapCacheOption.OnLoad;
-        bmp.StreamSource = stream;
-        bmp.EndInit();
-        bmp.Freeze();
-        return bmp;
+        using var gdiBmp = new System.Drawing.Bitmap(stream);
+        return System.Drawing.Icon.FromHandle(gdiBmp.GetHicon());
     }
 
     public void Dispose() => _icon.Dispose();

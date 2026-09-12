@@ -56,34 +56,43 @@ public sealed class HotkeyManager : IDisposable
 
     private bool Register()
     {
-        var hwnd = new WindowInteropHelper(_window).Handle;
-        if (hwnd == IntPtr.Zero)
-            return false;
-
+        // Register against IntPtr.Zero so WM_HOTKEY goes to the thread
+        // message queue — works even with WsExNoActivate overlay windows.
         _registered = NativeMethods.RegisterHotKey(
-            hwnd,
+            IntPtr.Zero,
             HotkeyId,
             Modifiers | NativeMethods.ModNorepeat,
             VirtualKey);
+
+        if (_registered)
+            ComponentDispatcher.ThreadFilterMessage += OnThreadMessage;
+
         return _registered;
     }
 
     private void Unregister()
     {
-        var hwnd = new WindowInteropHelper(_window).Handle;
-        if (hwnd != IntPtr.Zero && _registered)
-            NativeMethods.UnregisterHotKey(hwnd, HotkeyId);
+        if (_registered)
+        {
+            ComponentDispatcher.ThreadFilterMessage -= OnThreadMessage;
+            NativeMethods.UnregisterHotKey(IntPtr.Zero, HotkeyId);
+        }
         _registered = false;
     }
 
-    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    private void OnThreadMessage(ref MSG msg, ref bool handled)
     {
-        if (msg == NativeMethods.WmHotkey && wParam.ToInt32() == HotkeyId)
+        if (handled) return;
+        if (msg.message == NativeMethods.WmHotkey && msg.wParam.ToInt32() == HotkeyId)
         {
             Pressed?.Invoke();
             handled = true;
         }
+    }
 
+    // Keep WndProc hook for any future window-level messages.
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
         return IntPtr.Zero;
     }
 

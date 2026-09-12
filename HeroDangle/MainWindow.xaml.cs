@@ -27,6 +27,22 @@ public partial class MainWindow : Window
     private float _simTime;
     private bool _dragging;
     private bool _repositionMode;
+
+    private const float MenuPad = 8f;
+    private const float MenuItemHeight = 40f;
+    private const float MenuCheckWidth = 22f;
+    private const float MenuEmojiWidth = 30f;
+    private const float MenuFontSize = 14.5f;
+    private const float MenuEmojiSize = 19f;
+
+    private readonly CharmDefinition[] _menuCharms = CharmCatalog.BuiltIn;
+    private bool _menuOpen;
+    private Vec2 _menuPos;
+    private float _menuWidth;
+    private float _menuHeight;
+    private float _menuDpi = 1f;
+    private int _menuHover = -1;
+
     private SettingsWindow? _settings;
 
     public MainWindow(AppConfig config)
@@ -96,7 +112,7 @@ public partial class MainWindow : Window
         if (_dragging && !mouseDown)
             ReleaseDrag(cursor);
 
-        OverlayWindow.SetClickThrough(this, !((_summoned && overCharm) || _dragging));
+        OverlayWindow.SetClickThrough(this, !((_summoned && overCharm) || _dragging || (_menuOpen && InMenu(cursor))));
 
         const float maxCatchUp = RopeSolver.FixedDt * 8;
         if (_accumulator > maxCatchUp)
@@ -156,10 +172,27 @@ public partial class MainWindow : Window
         float dpi = (float)VisualTreeHelper.GetDpi(this).PixelsPerDip;
         float sway = _rope.SwayAngle(_renderPoints);
         CharmRenderer.Draw(canvas, _renderPoints, _charm, dpi, _presence, sway);
+        if (_menuOpen)
+            DrawMenu(canvas);
     }
 
     private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
     {
+        if (_menuOpen)
+        {
+            Vec2 pt = PointToVec(e.GetPosition(this));
+            if (InMenu(pt))
+            {
+                int index = HitMenu(pt);
+                if (index >= 0)
+                    OnCharmPicked(_menuCharms[index]);
+                _menuOpen = false;
+                e.Handled = true;
+                return;
+            }
+            _menuOpen = false;
+        }
+
         if (!_summoned)
             return;
 
@@ -177,6 +210,9 @@ public partial class MainWindow : Window
 
     private void OnPreviewMouseMove(object sender, MouseEventArgs e)
     {
+        if (_menuOpen)
+            _menuHover = HitMenu(PointToVec(e.GetPosition(this)));
+
         if (!_dragging)
             return;
 
@@ -193,6 +229,149 @@ public partial class MainWindow : Window
 
         ReleaseDrag(PointToVec(e.GetPosition(this)));
         e.Handled = true;
+    }
+
+    private void OnPreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (!_summoned)
+            return;
+
+        Vec2 cursor = PointToVec(e.GetPosition(this));
+
+        if (_menuOpen)
+        {
+            _menuOpen = false;
+            e.Handled = true;
+            return;
+        }
+
+        if (!IsOverCharm(cursor))
+            return;
+
+        e.Handled = true;
+        OpenMenu(cursor);
+    }
+
+    private bool InMenu(Vec2 p)
+    {
+        return _menuOpen &&
+               p.X >= _menuPos.X && p.X <= _menuPos.X + _menuWidth &&
+               p.Y >= _menuPos.Y && p.Y <= _menuPos.Y + _menuHeight;
+    }
+
+    private int HitMenu(Vec2 p)
+    {
+        if (_menuDpi <= 0f || !InMenu(p))
+            return -1;
+
+        float itemH = MenuItemHeight * _menuDpi;
+        float innerTop = _menuPos.Y + MenuPad * _menuDpi;
+        if (p.Y < innerTop)
+            return -1;
+
+        int index = (int)((p.Y - innerTop) / itemH);
+        if (index < 0 || index >= _menuCharms.Length || p.Y >= innerTop + (index + 1) * itemH)
+            return -1;
+        return index;
+    }
+
+    private void OpenMenu(Vec2 cursor)
+    {
+        _menuDpi = (float)VisualTreeHelper.GetDpi(this).PixelsPerDip;
+
+        float maxNameWidth = 0f;
+        using (var measurePaint = new SKPaint
+        {
+            Typeface = SKTypeface.FromFamilyName("Segoe UI"),
+            TextSize = MenuFontSize * _menuDpi,
+            IsAntialias = true
+        })
+        {
+            foreach (CharmDefinition charm in _menuCharms)
+                maxNameWidth = Math.Max(maxNameWidth, measurePaint.MeasureText(charm.Name));
+        }
+
+        float itemH = MenuItemHeight * _menuDpi;
+        float width = MenuCheckWidth * _menuDpi + MenuEmojiWidth * _menuDpi + maxNameWidth + MenuPad * 5f * _menuDpi;
+        float height = _menuCharms.Length * itemH + MenuPad * 2f * _menuDpi;
+
+        float x = cursor.X + 10f;
+        if (x + width > Width - 6f)
+            x = cursor.X - width - 10f;
+        x = Math.Clamp(x, 6f, Math.Max(6f, (float)Width - width - 6f));
+
+        float y = cursor.Y + 10f;
+        if (y + height > Height - 6f)
+            y = Math.Max(6f, (float)Height - height - 6f);
+
+        _menuPos = new Vec2(x, y);
+        _menuWidth = width;
+        _menuHeight = height;
+        _menuHover = -1;
+        _menuOpen = true;
+    }
+
+    private void DrawMenu(SKCanvas canvas)
+    {
+        if (_menuDpi <= 0f)
+            return;
+
+        float s = _menuDpi;
+        float px = _menuPos.X;
+        float py = _menuPos.Y;
+        float w = _menuWidth;
+        float h = _menuHeight;
+
+        var box = new SKRoundRect(new SKRect(px, py, px + w, py + h), 8f * s, 8f * s);
+        using (var fill = new SKPaint { IsAntialias = true, Color = new SKColor(248, 249, 251, 242) })
+        {
+            canvas.DrawRoundRect(box, fill);
+        }
+        using (var border = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Stroke, StrokeWidth = 1f * s, Color = new SKColor(196, 202, 212, 210) })
+        {
+            canvas.DrawRoundRect(box, border);
+        }
+
+        float itemH = MenuItemHeight * s;
+        for (int i = 0; i < _menuCharms.Length; i++)
+        {
+            float rowTop = py + MenuPad * s + i * itemH;
+            if (i == _menuHover)
+            {
+                var row = new SKRoundRect(new SKRect(px + 4f * s, rowTop, px + w - 4f * s, rowTop + itemH), 6f * s, 6f * s);
+                using (var highlight = new SKPaint { IsAntialias = true, Color = new SKColor(210, 228, 250, 220) })
+                {
+                    canvas.DrawRoundRect(row, highlight);
+                }
+            }
+
+            float centerY = rowTop + itemH / 2f;
+            float colX = px + MenuPad * s;
+
+            using (var checkFont = new SKFont(SKTypeface.FromFamilyName("Segoe UI"), 13f * s))
+            using (var checkPaint = new SKPaint
+            {
+                IsAntialias = true,
+                Color = _menuCharms[i].Id == _charm.Id ? new SKColor(28, 112, 200) : new SKColor(186, 192, 202)
+            })
+            {
+                canvas.DrawText("✓", colX + 2f * s, centerY + 4.5f * s, checkFont, checkPaint);
+            }
+
+            float emojiX = px + (MenuCheckWidth + MenuEmojiWidth / 2f) * s + MenuPad * s;
+            using (var emojiFont = new SKFont(SKTypeface.FromFamilyName("Segoe UI Emoji"), MenuEmojiSize * s))
+            using (var emojiPaint = new SKPaint { IsAntialias = true, TextAlign = SKTextAlign.Center })
+            {
+                canvas.DrawText(_menuCharms[i].Emoji, emojiX, centerY + MenuEmojiSize * s * 0.36f, emojiFont, emojiPaint);
+            }
+
+            float nameX = px + (MenuCheckWidth + MenuEmojiWidth) * s + MenuPad * s;
+            using (var nameFont = new SKFont(SKTypeface.FromFamilyName("Segoe UI"), MenuFontSize * s))
+            using (var namePaint = new SKPaint { IsAntialias = true, Color = new SKColor(31, 35, 40, 235) })
+            {
+                canvas.DrawText(_menuCharms[i].Name, nameX, centerY + MenuFontSize * s * 0.36f, nameFont, namePaint);
+            }
+        }
     }
 
     private void ReleaseDrag(Vec2 cursor)
@@ -234,6 +413,8 @@ public partial class MainWindow : Window
     private void ToggleSummon()
     {
         _summoned = !_summoned;
+        if (!_summoned)
+            _menuOpen = false;
         _config.Summoned = _summoned;
         ConfigService.Save(_config);
         if (_summoned && _presence < 0.05f)

@@ -13,7 +13,8 @@
         Focusable="False"
         PreviewMouseLeftButtonDown="OnPreviewMouseDown"
         PreviewMouseMove="OnPreviewMouseMove"
-        PreviewMouseLeftButtonUp="OnPreviewMouseUp">
+        PreviewMouseLeftButtonUp="OnPreviewMouseUp"
+        PreviewMouseRightButtonUp="OnPreviewMouseRightButtonUp">
     <skia:SKElement x:Name="Skia"
                     IgnorePixelScaling="True"
                     PaintSurface="OnPaintSurface"/>
