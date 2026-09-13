@@ -3,7 +3,8 @@ namespace HeroDangle;
 public enum CharmKind
 {
     Vector,
-    Emoji
+    Emoji,
+    Image
 }
 
 public sealed record CharmDefinition(string Id, string Name, string Emoji, CharmKind Kind);
@@ -17,7 +18,8 @@ public static class CharmCatalog
         new("chili", "Chili", "🌶️", CharmKind.Vector),
         new("horseshoe", "Horseshoe", "🐴", CharmKind.Vector),
         new("clover", "Clover", "🍀", CharmKind.Vector),
-        new("hamsa", "Hamsa", "🪬", CharmKind.Vector)
+        new("hamsa", "Hamsa", "🪬", CharmKind.Vector),
+        new("batman", "Batman", "🦇", CharmKind.Image)
     ];
 
     public static CharmDefinition Custom(string emoji) =>

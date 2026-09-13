@@ -1,3 +1,4 @@
+using System.IO;
 using SkiaSharp;
 
 namespace HeroDangle;
@@ -108,16 +109,21 @@ public static class CharmRenderer
         canvas.Translate(p.X, p.Y);
         canvas.RotateDegrees(sway * (180f / MathF.PI) * 0.35f);
 
-        using var shadow = new SKPaint
+        if (charm.Kind != CharmKind.Image)
         {
-            IsAntialias = true,
-            Color = new SKColor(0, 0, 0, 55),
-            MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3.5f * dpi)
-        };
-        canvas.DrawCircle(ox, oy, r * 0.92f, shadow);
+            using var shadow = new SKPaint
+            {
+                IsAntialias = true,
+                Color = new SKColor(0, 0, 0, 55),
+                MaskFilter = SKMaskFilter.CreateBlur(SKBlurStyle.Normal, 3.5f * dpi)
+            };
+            canvas.DrawCircle(ox, oy, r * 0.92f, shadow);
+        }
 
         if (charm.Kind == CharmKind.Emoji)
             DrawEmoji(canvas, charm.Emoji, r, dpi);
+        else if (charm.Kind == CharmKind.Image)
+            DrawImage(canvas, r, dpi);
         else
             DrawVectorCharm(canvas, charm.Id, r, dpi);
 
@@ -262,5 +268,47 @@ public static class CharmRenderer
     private static void DrawLeaf(SKCanvas canvas, SKPaint fill, float x, float y, float r)
     {
         canvas.DrawCircle(x, y, r, fill);
+    }
+
+    private static SKBitmap? _batman;
+
+    private static SKBitmap? LoadImageCharm()
+    {
+        if (_batman is not null)
+            return _batman;
+
+        try
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "Assets", "batman.png");
+            if (!File.Exists(path))
+                return null;
+
+            _batman = SKBitmap.Decode(path);
+        }
+        catch
+        {
+            _batman = null;
+        }
+
+        return _batman;
+    }
+
+    private static void DrawImage(SKCanvas canvas, float r, float dpi)
+    {
+        SKBitmap? image = LoadImageCharm();
+        if (image is null)
+        {
+            DrawEmoji(canvas, "🦇", r, dpi);
+            return;
+        }
+
+        float scale = (r * 2.2f + 9f * dpi) / image.Height;
+        float w = image.Width * scale;
+        float h = image.Height * scale;
+        using var paint = new SKPaint
+        {
+            ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(60, 60, 60), SKBlendMode.SrcIn)
+        };
+        canvas.DrawBitmap(image, new SKRect(-w / 2f, -h / 2f, w / 2f, h / 2f), paint);
     }
 }
