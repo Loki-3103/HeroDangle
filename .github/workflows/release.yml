@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish app
+        run: dotnet publish HeroDangle/HeroDangle.csproj -c Release -r win-x64 --self-contained true -o publish_output
+
+      - name: Copy shortcut script
+        run: Copy-Item "tools/Create Shortcut.bat" publish_output/
+
+      - name: Zip
+        run: Compress-Archive -Path publish_output/* -DestinationPath HeroDangle.zip -Force
+
+      - name: Upload to Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HeroDangle.zip
