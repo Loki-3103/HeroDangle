@@ -14,12 +14,8 @@ public static class CharmCatalog
     public static readonly CharmDefinition[] BuiltIn =
     [
         new("nazar", "Nazar", "🧿", CharmKind.Vector),
-        new("lemon", "Lemon", "🍋", CharmKind.Vector),
-        new("chili", "Chili", "🌶️", CharmKind.Vector),
-        new("horseshoe", "Horseshoe", "🐴", CharmKind.Vector),
-        new("clover", "Clover", "🍀", CharmKind.Vector),
-        new("hamsa", "Hamsa", "🪬", CharmKind.Vector),
-        new("batman", "Batman", "🦇", CharmKind.Image)
+        new("batman", "Batman", "🦇", CharmKind.Image),
+        new("dhirstibomma", "Dhirsti Bomma", "🪆", CharmKind.Image)
     ];
 
     public static CharmDefinition Custom(string emoji) =>

@@ -123,7 +123,7 @@ public static class CharmRenderer
         if (charm.Kind == CharmKind.Emoji)
             DrawEmoji(canvas, charm.Emoji, r, dpi);
         else if (charm.Kind == CharmKind.Image)
-            DrawImage(canvas, r, dpi);
+            DrawImage(canvas, charm, r, dpi);
         else
             DrawVectorCharm(canvas, charm.Id, r, dpi);
 
@@ -149,14 +149,6 @@ public static class CharmRenderer
     private static void DrawVectorCharm(SKCanvas canvas, string id, float r, float dpi)
     {
         using var fill = new SKPaint { IsAntialias = true, Style = SKPaintStyle.Fill };
-        using var stroke = new SKPaint
-        {
-            IsAntialias = true,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1.4f * dpi,
-            StrokeJoin = SKStrokeJoin.Round,
-            StrokeCap = SKStrokeCap.Round
-        };
 
         switch (id)
         {
@@ -173,91 +165,6 @@ public static class CharmRenderer
                 canvas.DrawCircle(-r * 0.18f, -r * 0.22f, r * 0.12f, fill);
                 break;
 
-            case "lemon":
-                canvas.Save();
-                canvas.RotateDegrees(-18);
-                canvas.Scale(1.15f, 0.82f);
-                fill.Color = new SKColor(244, 206, 66);
-                canvas.DrawCircle(0, 0, r, fill);
-                stroke.Color = new SKColor(214, 164, 32);
-                canvas.DrawCircle(0, 0, r, stroke);
-                fill.Color = new SKColor(120, 168, 64);
-                using (var leaf = new SKPath())
-                {
-                    leaf.MoveTo(r * 0.15f, -r * 1.05f);
-                    leaf.CubicTo(r * 0.55f, -r * 1.35f, r * 0.85f, -r * 0.85f, r * 0.35f, -r * 0.7f);
-                    canvas.DrawPath(leaf, fill);
-                }
-                canvas.Restore();
-                break;
-
-            case "chili":
-                fill.Color = new SKColor(214, 48, 49);
-                using (var chili = new SKPath())
-                {
-                    chili.MoveTo(-r * 0.15f, -r * 0.55f);
-                    chili.CubicTo(r * 0.95f, -r * 0.2f, r * 0.7f, r * 0.95f, -r * 0.05f, r * 0.95f);
-                    chili.CubicTo(-r * 0.85f, r * 0.55f, -r * 0.7f, -r * 0.15f, -r * 0.15f, -r * 0.55f);
-                    canvas.DrawPath(chili, fill);
-                }
-                fill.Color = new SKColor(70, 140, 58);
-                using (var stem = new SKPath())
-                {
-                    stem.MoveTo(-r * 0.1f, -r * 0.5f);
-                    stem.CubicTo(r * 0.05f, -r * 0.95f, r * 0.45f, -r * 1.05f, r * 0.55f, -r * 0.7f);
-                    stroke.Color = fill.Color;
-                    stroke.StrokeWidth = 3.2f * dpi;
-                    canvas.DrawPath(stem, stroke);
-                }
-                break;
-
-            case "horseshoe":
-                stroke.Color = new SKColor(196, 154, 74);
-                stroke.StrokeWidth = 7.2f * dpi;
-                using (var shoe = new SKPath())
-                {
-                    shoe.MoveTo(-r * 0.62f, r * 0.15f);
-                    shoe.CubicTo(-r * 0.85f, -r * 0.85f, r * 0.85f, -r * 0.85f, r * 0.62f, r * 0.15f);
-                    canvas.DrawPath(shoe, stroke);
-                }
-                stroke.StrokeWidth = 3.4f * dpi;
-                canvas.DrawLine(-r * 0.62f, r * 0.15f, -r * 0.62f, r * 0.55f, stroke);
-                canvas.DrawLine(r * 0.62f, r * 0.15f, r * 0.62f, r * 0.55f, stroke);
-                break;
-
-            case "clover":
-                fill.Color = new SKColor(46, 158, 78);
-                DrawLeaf(canvas, fill, -r * 0.32f, -r * 0.18f, r * 0.38f);
-                DrawLeaf(canvas, fill, r * 0.32f, -r * 0.18f, r * 0.38f);
-                DrawLeaf(canvas, fill, 0, r * 0.32f, r * 0.38f);
-                DrawLeaf(canvas, fill, 0, -r * 0.52f, r * 0.34f);
-                stroke.Color = new SKColor(36, 120, 58);
-                stroke.StrokeWidth = 2.2f * dpi;
-                canvas.DrawLine(0, r * 0.2f, 0, r * 0.95f, stroke);
-                break;
-
-            case "hamsa":
-                fill.Color = new SKColor(232, 214, 176);
-                using (var hand = new SKPath())
-                {
-                    hand.MoveTo(-r * 0.55f, r * 0.15f);
-                    hand.CubicTo(-r * 0.7f, -r * 0.1f, -r * 0.35f, -r * 0.95f, -r * 0.18f, -r * 0.95f);
-                    hand.LineTo(-r * 0.08f, -r * 0.2f);
-                    hand.LineTo(0, -r * 1.05f);
-                    hand.LineTo(r * 0.08f, -r * 0.2f);
-                    hand.LineTo(r * 0.18f, -r * 0.95f);
-                    hand.CubicTo(r * 0.35f, -r * 0.95f, r * 0.7f, -r * 0.1f, r * 0.55f, r * 0.15f);
-                    hand.CubicTo(r * 0.4f, r * 0.95f, -r * 0.4f, r * 0.95f, -r * 0.55f, r * 0.15f);
-                    canvas.DrawPath(hand, fill);
-                }
-                fill.Color = new SKColor(46, 120, 186);
-                canvas.DrawCircle(0, r * 0.22f, r * 0.22f, fill);
-                fill.Color = SKColors.White;
-                canvas.DrawCircle(0, r * 0.22f, r * 0.12f, fill);
-                fill.Color = new SKColor(20, 24, 32);
-                canvas.DrawCircle(0, r * 0.22f, r * 0.05f, fill);
-                break;
-
             default:
                 fill.Color = new SKColor(240, 200, 80);
                 canvas.DrawCircle(0, 0, r, fill);
@@ -265,50 +172,52 @@ public static class CharmRenderer
         }
     }
 
-    private static void DrawLeaf(SKCanvas canvas, SKPaint fill, float x, float y, float r)
-    {
-        canvas.DrawCircle(x, y, r, fill);
-    }
+    private static readonly Dictionary<string, SKBitmap?> ImageCache = new();
 
-    private static SKBitmap? _batman;
-
-    private static SKBitmap? LoadImageCharm()
+    private static SKBitmap? LoadImageCharm(string id)
     {
-        if (_batman is not null)
-            return _batman;
+        if (ImageCache.TryGetValue(id, out SKBitmap? cached))
+            return cached;
 
         try
         {
-            string path = Path.Combine(AppContext.BaseDirectory, "Assets", "batman.png");
-            if (!File.Exists(path))
-                return null;
-
-            _batman = SKBitmap.Decode(path);
+            string path = Path.Combine(AppContext.BaseDirectory, "Assets", $"{id}.png");
+            cached = File.Exists(path) ? SKBitmap.Decode(path) : null;
         }
         catch
         {
-            _batman = null;
+            cached = null;
         }
 
-        return _batman;
+        ImageCache[id] = cached;
+        return cached;
     }
 
-    private static void DrawImage(SKCanvas canvas, float r, float dpi)
+    private static void DrawImage(SKCanvas canvas, CharmDefinition charm, float r, float dpi)
     {
-        SKBitmap? image = LoadImageCharm();
+        SKBitmap? image = LoadImageCharm(charm.Id);
         if (image is null)
         {
-            DrawEmoji(canvas, "🦇", r, dpi);
+            DrawEmoji(canvas, charm.Emoji, r, dpi);
             return;
         }
 
-        float scale = (r * 2.2f + 9f * dpi) / image.Height;
+        float scale = (r * 2.2f + 9f * dpi) / Math.Min(image.Width, image.Height);
         float w = image.Width * scale;
         float h = image.Height * scale;
-        using var paint = new SKPaint
+        SKRect rect = new(-w / 2f, -h / 2f, w / 2f, h / 2f);
+
+        if (charm.Id == "batman")
         {
-            ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(60, 60, 60), SKBlendMode.SrcIn)
-        };
-        canvas.DrawBitmap(image, new SKRect(-w / 2f, -h / 2f, w / 2f, h / 2f), paint);
+            using var paint = new SKPaint
+            {
+                ColorFilter = SKColorFilter.CreateBlendMode(new SKColor(60, 60, 60), SKBlendMode.SrcIn)
+            };
+            canvas.DrawBitmap(image, rect, paint);
+        }
+        else
+        {
+            canvas.DrawBitmap(image, rect);
+        }
     }
 }
