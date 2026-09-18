@@ -7,7 +7,10 @@ public enum CharmKind
     Image
 }
 
-public sealed record CharmDefinition(string Id, string Name, string Emoji, CharmKind Kind);
+public sealed record CharmDefinition(string Id, string Name, string Emoji, CharmKind Kind)
+{
+    public float RenderScale { get; init; } = 1f;
+}
 
 public static class CharmCatalog
 {
@@ -15,7 +18,8 @@ public static class CharmCatalog
     [
         new("nazar", "Nazar", "🧿", CharmKind.Vector),
         new("batman", "Batman", "🦇", CharmKind.Image),
-        new("dhirstibomma", "Dhirsti Bomma", "🪆", CharmKind.Image)
+        new("dhirstibomma", "Dhirsti Bomma", "🪆", CharmKind.Image),
+        new("capsheild", "Cap Shield", "🛡️", CharmKind.Image) { RenderScale = 1.4f }
     ];
 
     public static CharmDefinition Custom(string emoji) =>

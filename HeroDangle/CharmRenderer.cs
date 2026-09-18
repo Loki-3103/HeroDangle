@@ -202,7 +202,7 @@ public static class CharmRenderer
             return;
         }
 
-        float scale = (r * 2.2f + 9f * dpi) / Math.Min(image.Width, image.Height);
+        float scale = (r * 2.2f * charm.RenderScale + 9f * dpi) / Math.Min(image.Width, image.Height);
         float w = image.Width * scale;
         float h = image.Height * scale;
         SKRect rect = new(-w / 2f, -h / 2f, w / 2f, h / 2f);

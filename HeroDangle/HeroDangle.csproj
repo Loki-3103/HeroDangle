@@ -19,5 +19,6 @@
   <ItemGroup>
     <Content Include="Assets\batman.png" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Assets\dhirstibomma.png" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Assets\capsheild.png" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
